@@ -45,8 +45,10 @@ extension URLSession: NetworkSession {
 public class NetworkSessionManager {
     
     internal var session: NetworkSession = URLSession.shared
+        
+    public init() { }
     
-    func load<T: Decodable>(request: NetworkRequest, completion: @escaping @Sendable(Result<T>) -> Void) {
+    public func load<T: Decodable>(request: NetworkRequest, completion: @escaping @Sendable(Result<T>) -> Void) {
         
         guard let urlRequest = createUrlRequest(from: request) else {
             completion(.failure(NetworkError.badUrlRequest))
