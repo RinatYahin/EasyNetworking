@@ -7,31 +7,6 @@
 
 import Foundation
 
-public enum Result<Value: Decodable & Sendable>: Sendable {
-    case success(Value)
-    case failure(NetworkError)
-}
-
-public enum HTTPMethod: String {
-    case get = "GET"
-    case post = "POST"
-    case put = "PUT"
-    case delete = "DELETE"
-    case patch = "PATCH"
-}
-
-public protocol NetworkRequest {
-    var url: String { get }
-    var method: HTTPMethod { get }
-    var headers: [String: Any]? { get }
-}
-
-extension NetworkRequest {
-    var headers: [String: Any]? {
-        return [:]
-    }
-}
-
 protocol NetworkSession {
     func get(request: URLRequest, completion: @escaping @Sendable(Data?, URLResponse?, Error?) -> Void)
 }
@@ -84,6 +59,7 @@ public class NetworkSessionManager {
         }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = request.method.rawValue
+        
         return urlRequest
     }
 }
