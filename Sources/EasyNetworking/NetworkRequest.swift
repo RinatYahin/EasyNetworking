@@ -14,7 +14,7 @@ public protocol NetworkRequest {
 }
 
 extension NetworkRequest {
-    var headers: [String: Any]? {
+    public var headers: [String: Any]? {
         return [:]
     }
 }

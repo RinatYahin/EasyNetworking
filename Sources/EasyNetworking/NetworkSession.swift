@@ -7,7 +7,12 @@
 
 import Foundation
 
-protocol NetworkSession {
+public protocol Configuration {
+    var baseUrl: String { get }
+    var headers: [String: String] { get }
+}
+
+internal protocol NetworkSession {
     func get(request: URLRequest, completion: @escaping @Sendable(Data?, URLResponse?, Error?) -> Void)
 }
 
@@ -20,8 +25,11 @@ extension URLSession: NetworkSession {
 public class NetworkSessionManager {
     
     internal var session: NetworkSession = URLSession.shared
-        
-    public init() { }
+    internal var configuration: Configuration
+    
+    public init(configuration: Configuration) {
+        self.configuration = configuration
+    }
     
     public func load<T: Decodable>(request: NetworkRequest, completion: @escaping @Sendable(Result<T>) -> Void) {
         
@@ -53,12 +61,16 @@ public class NetworkSessionManager {
     }
     
     
-    func createUrlRequest(from request: NetworkRequest) -> URLRequest? {
-        guard let url = URL(string: request.url) else {
+    internal func createUrlRequest(from request: NetworkRequest) -> URLRequest? {
+        guard let url = URL(string: configuration.baseUrl + request.url) else {
             return nil
         }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = request.method.rawValue
+        
+        for (key, value) in configuration.headers {
+            urlRequest.addValue(key, forHTTPHeaderField: value)
+        }
         
         return urlRequest
     }
