@@ -7,11 +7,8 @@
 
 import Foundation
 
-public protocol Configuration {
-    var baseUrl: String { get }
-    var headers: [String: String] { get }
-}
-
+public typealias HTTPHeaders = [String: String]
+public typealias Parameters = [String: Any]
 internal protocol NetworkSession {
     func get(request: URLRequest, completion: @escaping @Sendable(Data?, URLResponse?, Error?) -> Void)
 }
@@ -25,20 +22,24 @@ extension URLSession: NetworkSession {
 public class NetworkSessionManager {
     
     internal var session: NetworkSession = URLSession.shared
-    internal var configuration: Configuration
+
+    public init() { }
     
-    public init(configuration: Configuration) {
-        self.configuration = configuration
-    }
-    
-    public func load<T: Decodable>(request: NetworkRequest, completion: @escaping @Sendable(Result<T>) -> Void) {
+    public func load<T: Decodable>(urlString: String,
+                                   httpMethod: HTTPMethod = .get,
+                                   headers: HTTPHeaders = [:],
+                                   parameters: Parameters = [:],
+                                   completion: @escaping @Sendable(Result<T>) -> Void) {
         
-        guard let urlRequest = createUrlRequest(from: request) else {
+        guard let request = createUrlRequest(from: urlString,
+                                             method: httpMethod,
+                                             headers: headers,
+                                             parameters: parameters) else {
             completion(.failure(NetworkError.badUrlRequest))
             return
         }
         
-        session.get(request: urlRequest) { data, response, error in
+        session.get(request: request) { data, response, error in
             guard let response = response as? HTTPURLResponse else {
                 completion(.failure(.responseEmpty))
                 return
@@ -60,15 +61,17 @@ public class NetworkSessionManager {
         }
     }
     
-    
-    internal func createUrlRequest(from request: NetworkRequest) -> URLRequest? {
-        guard let url = URL(string: configuration.baseUrl + request.url) else {
+    internal func createUrlRequest(from urlString: String,
+                                   method: HTTPMethod,
+                                   headers: HTTPHeaders,
+                                   parameters: Parameters) -> URLRequest? {
+        guard let url = URL(string: urlString) else {
             return nil
         }
         var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = request.method.rawValue
+        urlRequest.httpMethod = method.rawValue
         
-        for (key, value) in configuration.headers {
+        for (key, value) in headers {
             urlRequest.addValue(key, forHTTPHeaderField: value)
         }
         
