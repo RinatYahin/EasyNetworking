@@ -52,9 +52,14 @@ public class NetworkSessionManager {
             
             switch response.statusCode {
             case 200..<299:
-                let result = try? JSONDecoder().decode(T.self, from: data)
-                let response = result.map(Result<T>.success) ?? Result.failure(NetworkError.unknownError)
-                completion(response)
+                do {
+                    let result = try JSONDecoder().decode(T.self, from: data)
+                    completion(Result.success(result))
+                } catch {
+                    print(error.localizedDescription)
+                    completion(Result.failure(NetworkError.unknownError))
+                }
+
             default:
                 break
             }
