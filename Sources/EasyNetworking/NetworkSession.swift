@@ -50,6 +50,12 @@ public class NetworkSessionManager {
                 return
             }
             
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print(jsonString) // Выведет JSON в виде строки
+            } else {
+                print("Не удалось конвертировать данные в строку")
+            }
+            
             switch response.statusCode {
             case 200..<299:
                 do {
